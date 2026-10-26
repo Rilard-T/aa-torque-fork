@@ -2,6 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 <data>
+    <import type="android.view.View" />
     <import type="android.graphics.Typeface" />
     <import type="androidx.constraintlayout.widget.ConstraintLayout.LayoutParams" />
     <import type="com.aatorque.stats.ViewAdapterKt" />
@@ -48,23 +49,45 @@
             android:textSize="25sp"
             android:typeface="@{font}" />
 
-    <TextView
-        android:id="@+id/iconElement"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:alpha="1.0"
-        android:typeface="@{font}"
-        android:backgroundTint="@color/car_primary"
-        android:ellipsize="marquee"
-        android:gravity="center"
-        android:textAlignment="gravity"
-        android:singleLine="true"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
-        android:text="@{iconText}"
-        app:backgroundResource="@{icon ?? 0}" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:clipChildren="false">
+
+            <!-- Icon mode: fixed 40x40 as before -->
+            <TextView
+                android:id="@+id/iconElement"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_horizontal"
+                android:alpha="1.0"
+                android:typeface="@{font}"
+                android:backgroundTint="@color/car_primary"
+                android:gravity="center"
+                android:textAlignment="gravity"
+                android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.VISIBLE : View.GONE}"
+                app:backgroundResource="@{icon ?? 0}" />
+
+            <!-- Text label mode: full text, up to 2 lines, never ellipsized -->
+            <TextView
+                android:id="@+id/labelElement"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:minHeight="40dp"
+                android:maxWidth="190dp"
+                android:ellipsize="none"
+                android:maxLines="2"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:typeface="@{font}"
+                android:text="@{iconText}"
+                android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.GONE : View.VISIBLE}" />
+        </FrameLayout>
 
     </LinearLayout>
 </layout>
