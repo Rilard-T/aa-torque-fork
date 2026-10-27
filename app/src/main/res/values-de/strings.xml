@@ -6,7 +6,7 @@
 
     <!-- Fuzzy -->
     <string name="activity_stopwatch_title">Stoppuhr</string>
-    <string name="app_car_service_name">AA Mazda Monitor</string>
+    <string name="app_car_service_name">AA Monitor Beta</string>
     <string name="app_name">AA Monitor Beta</string>
     <string name="credits_author">Basierend auf der App von:</string>
     <string name="credits_basedon">Basierend auf dem SDK und Demo-App von:</string>

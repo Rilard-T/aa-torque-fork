@@ -6,7 +6,7 @@
     <!-- The previous string is too generic and long -->
     <string name="activity_settings_title">AA Mazda Monitor</string>
     <string name="activity_stopwatch_title">Cronómetro</string>
-    <string name="app_car_service_name">AA Mazda Monitor</string>
+    <string name="app_car_service_name">AA Monitor Beta</string>
 
     <!-- The title doesn't need translation. It looks weird in the app -->
     <string name="app_name">AA Monitor Beta</string>
