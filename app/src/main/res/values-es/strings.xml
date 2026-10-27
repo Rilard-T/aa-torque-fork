@@ -9,7 +9,7 @@
     <string name="app_car_service_name">AA Mazda Monitor</string>
 
     <!-- The title doesn't need translation. It looks weird in the app -->
-    <string name="app_name">AA Mazda Monitor</string>
+    <string name="app_name">AA Monitor Beta</string>
     <string name="credits_author">Basada en la app creada por:</string>
     <string name="credits_basedon">Basada en el SDK y la app demo de:</string>
     <string name="credits_drivesafely">Conduzca con precaución.</string>

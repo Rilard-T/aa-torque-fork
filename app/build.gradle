@@ -22,7 +22,7 @@ android {
     namespace "com.aatorque.stats"
     compileSdk 34
     defaultConfig {
-        applicationId "com.aamazda.monitor"
+        applicationId "com.aamazda.monitor.beta"
         minSdkVersion 28
         targetSdkVersion 34
         versionCode versionMajor * 100000 + versionMinor * 1000 + versionPatch
@@ -35,6 +35,7 @@ android {
     }
     applicationVariants.configureEach {
         buildConfigField "String", "RELEASE_URL", "\"https://api.github.com/repos/${ghOwner}/${ghPackage}/releases/latest\""
+        buildConfigField "boolean", "OTA_ENABLED", "false"
         buildConfigField "String", "REPO_URL", "\"https://github.com/${ghOwner}/${ghPackage}\""
     }
     signingConfigs {

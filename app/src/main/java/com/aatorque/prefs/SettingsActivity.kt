@@ -356,6 +356,12 @@ class SettingsActivity : AppCompatActivity(),
 
     private fun checkUpdate(force: Boolean =false): Boolean {
         Timber.i("Checking for update")
+        if (!BuildConfig.OTA_ENABLED) {
+            if (force) runOnUiThread {
+                Toast.makeText(this, "Бета: обновление отключено", Toast.LENGTH_LONG).show()
+            }
+            return true
+        }
 
         var needsUpdate: Boolean? = null
         var checked = false
