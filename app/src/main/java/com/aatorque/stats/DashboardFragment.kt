@@ -203,6 +203,21 @@ open class DashboardFragment : AlbumArt() {
                 this@DashboardFragment::updateScale
             )
         }
+        registerWithView {
+            data -> data.map {
+                it.showMusic
+            }.distinctUntilChanged().collect {
+                binding.showMusic = it
+                binding.musicInfo.isSelected = true
+            }
+        }
+        registerWithView {
+            data -> data.map {
+                listOf(it.gaugeScale, it.valueScale, it.labelScale, if (it.hideHeader) 1 else 0)
+            }.distinctUntilChanged().collect {
+                applySizes(it[0], it[1], it[2], it[3] == 1)
+            }
+        }
         registerWithView{
             torqueRefresher.connectStatus.collect {
                 binding.status = when (it) {
@@ -399,6 +414,7 @@ open class DashboardFragment : AlbumArt() {
     }
 
     override suspend fun onMediaChanged(medadata: MediaMetadata?) {
+        binding.musicText = musicLine(medadata)
         Timber.i("Got new metadata $medadata shouldDisplay: $shouldDisplayArtwork")
         albumArtReady.await()
         if (!shouldDisplayArtwork) return
@@ -412,6 +428,21 @@ open class DashboardFragment : AlbumArt() {
             }
         }
         setupBackground(lastBackground)
+    }
+
+    private fun applySizes(gauge: Int, value: Int, label: Int, hideHeader: Boolean) {
+        fun pct(v: Int) = (if (v == 0) 100 else v) / 100f
+        binding.gaugeScale = pct(gauge)
+        binding.hideHeader = hideHeader
+        settingsViewModel.valueScale.value = pct(value)
+        settingsViewModel.labelScale.value = pct(label)
+    }
+
+    private fun musicLine(m: MediaMetadata?): String {
+        val title = m?.getString(MediaMetadata.METADATA_KEY_TITLE)?.trim().orEmpty()
+        val artist = (m?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+            ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST))?.trim().orEmpty()
+        return listOf(artist, title).filter { it.isNotEmpty() }.joinToString(" — ")
     }
 
     private fun updateScale(largeCenter: Boolean) {

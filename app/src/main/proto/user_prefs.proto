@@ -69,4 +69,9 @@ message UserPreference {
   uint32 opacity = 25;
   uint32 blurArt = 26;
   uint32 darkenArt = 27;
+  bool showMusic = 32;
+  uint32 gaugeScale = 28;
+  uint32 valueScale = 29;
+  uint32 labelScale = 30;
+  bool hideHeader = 31;
 }

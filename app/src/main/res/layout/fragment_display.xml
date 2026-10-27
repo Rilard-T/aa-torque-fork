@@ -13,6 +13,8 @@
     <variable name="font" type="Typeface" />
     <variable name="showBottom" type="Boolean" />
     <variable name="showSide" type="Boolean" />
+    <variable name="valueScale" type="float" />
+    <variable name="labelScale" type="float" />
 
     <variable
         name="alarm"
@@ -35,6 +37,8 @@
 
         <TextView
             android:id="@+id/valueElement"
+            android:scaleX="@{valueScale == 0f ? 1f : valueScale}"
+            android:scaleY="@{valueScale == 0f ? 1f : valueScale}"
             android:layout_width="120dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
@@ -59,6 +63,8 @@
             <!-- Icon mode: fixed 40x40 as before -->
             <TextView
                 android:id="@+id/iconElement"
+                android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
+                android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal"
@@ -73,6 +79,8 @@
             <!-- Text label mode: full text, up to 2 lines, never ellipsized -->
             <TextView
                 android:id="@+id/labelElement"
+                android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
+                android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"

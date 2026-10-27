@@ -193,4 +193,12 @@
     <string name="value">Значение</string>
     <string name="update_latest">Установлена последняя версия: %1$s</string>
     <string name="report_error">Сообщить об ошибке</string>
+    <string name="pref_sizes">Размеры элементов</string>
+    <string name="pref_sz_gauge">Размер приборов, %</string>
+    <string name="pref_sz_value">Размер значений в окошках, %</string>
+    <string name="pref_sz_label">Размер подписей в окошках, %</string>
+    <string name="pref_sz_header">Скрыть верхнюю строку</string>
+    <string name="pref_sz_header_desc">Строка статуса подключения показывается только пока идёт подключение</string>
+    <string name="pref_music_title">Играющий трек</string>
+    <string name="pref_music_summary">Показывать исполнителя и название под центральным прибором (нужен доступ к уведомлениям)</string>
 </resources>

@@ -48,6 +48,8 @@ class TorqueDisplay : Fragment() {
             binding.showBottom = it
         }
         binding.showBottom = isBottomDisplay
+        settingsViewModel.valueScale.observe(viewLifecycleOwner) { binding.valueScale = it }
+        settingsViewModel.labelScale.observe(viewLifecycleOwner) { binding.labelScale = it }
         settingsViewModel.chartVisible.observe(viewLifecycleOwner) {
             binding.showSide = it
         }

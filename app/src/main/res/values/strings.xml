@@ -206,4 +206,12 @@
     <string name="action_experimental">Experimental features</string>
     <string name="update_latest">You have the latest version: %1$s</string>
     <string name="report_error">Report an error</string>
+    <string name="pref_sizes">Element sizes</string>
+    <string name="pref_sz_gauge">Gauge size, %</string>
+    <string name="pref_sz_value">Tile value size, %</string>
+    <string name="pref_sz_label">Tile label size, %</string>
+    <string name="pref_sz_header">Hide top row</string>
+    <string name="pref_sz_header_desc">The connection status row is shown only while connecting</string>
+    <string name="pref_music_title">Now playing</string>
+    <string name="pref_music_summary">Show artist and title under the center gauge (needs notification access)</string>
 </resources>

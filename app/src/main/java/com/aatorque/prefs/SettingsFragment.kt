@@ -36,6 +36,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
     lateinit var opacityPref: SeekBarPreference
     lateinit var darkenArtPref: SeekBarPreference
     lateinit var blurArtPref: SeekBarPreference
+    lateinit var showMusicPref: CheckBoxPreference
+    lateinit var gaugeScalePref: SeekBarPreference
+    lateinit var valueScalePref: SeekBarPreference
+    lateinit var labelScalePref: SeekBarPreference
+    lateinit var hideHeaderPref: CheckBoxPreference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +56,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         opacityPref = findPreference("gaugeOpacity")!!
         blurArtPref = findPreference("blurArtwork")!!
         darkenArtPref = findPreference("darkenArtwork")!!
+        showMusicPref = findPreference("showMusic")!!
+        gaugeScalePref = findPreference("gaugeScale")!!
+        valueScalePref = findPreference("valueScale")!!
+        labelScalePref = findPreference("labelScale")!!
+        hideHeaderPref = findPreference("hideHeader")!!
         themePref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         fontPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
         backgroundPref.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
@@ -151,6 +161,39 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             return@setOnPreferenceChangeListener true
         }
+        gaugeScalePref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setGaugeScale(newValue as Int) }
+            return@setOnPreferenceChangeListener true
+        }
+        valueScalePref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setValueScale(newValue as Int) }
+            return@setOnPreferenceChangeListener true
+        }
+        labelScalePref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setLabelScale(newValue as Int) }
+            return@setOnPreferenceChangeListener true
+        }
+        hideHeaderPref.setOnPreferenceChangeListener { _, newValue ->
+            updateDatastorePref { it.setHideHeader(newValue as Boolean) }
+            return@setOnPreferenceChangeListener true
+        }
+        showMusicPref.setOnPreferenceChangeListener { _, newValue ->
+            val enabled = newValue as Boolean
+            if (enabled && !NotiService.isNotificationAccessEnabled(requireContext())) {
+                startActivity(
+                    Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS").apply {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            putExtra(
+                                Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                                NotiService::class.java.canonicalName
+                            )
+                        }
+                    }
+                )
+            }
+            updateDatastorePref { it.setShowMusic(enabled) }
+            return@setOnPreferenceChangeListener true
+        }
         blurArtPref.isVisible = Build.VERSION.SDK_INT >= 31
 
         numScreensPref.setOnBindEditTextListener {
@@ -169,6 +212,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 opacityPref.value = if (it.opacity == 0) 100 else it.opacity
                 blurArtPref.value = it.blurArt
                 darkenArtPref.value = it.darkenArt
+                showMusicPref.isChecked = it.showMusic
+                gaugeScalePref.value = if (it.gaugeScale == 0) 100 else it.gaugeScale
+                valueScalePref.value = if (it.valueScale == 0) 100 else it.valueScale
+                labelScalePref.value = if (it.labelScale == 0) 100 else it.labelScale
+                hideHeaderPref.isChecked = it.hideHeader
             }
         }
         lifecycleScope.launch {

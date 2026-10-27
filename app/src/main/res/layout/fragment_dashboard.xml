@@ -63,6 +63,22 @@
         <variable
             name="minMaxBelow"
             type="Boolean" />
+
+        <variable
+            name="musicText"
+            type="String" />
+
+        <variable
+            name="showMusic"
+            type="boolean" />
+
+        <variable
+            name="gaugeScale"
+            type="float" />
+
+        <variable
+            name="hideHeader"
+            type="boolean" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -102,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:layout_marginBottom="5dp"
-                android:visibility="@{status == 0 ? View.INVISIBLE : View.VISIBLE}"
+                android:visibility="@{status == 0 ? (hideHeader ? View.GONE : View.INVISIBLE) : View.VISIBLE}"
                 android:text='@{status == 0 ? "" : context.getString(status)}'
                 android:textAlignment="center"
                 android:textColor="@android:color/white"
@@ -214,6 +230,8 @@
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/gaugeLeft"
+        android:scaleX="@{gaugeScale == 0f ? 1f : gaugeScale}"
+        android:scaleY="@{gaugeScale == 0f ? 1f : gaugeScale}"
                     android:name="com.aatorque.stats.TorqueGauge"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -245,12 +263,14 @@
                     app:layout_constraintRight_toLeftOf="@+id/guideline2"
                     app:layout_constraintTop_toTopOf="parent"
                     android:visibility="@{!showChart ? View.VISIBLE : View.GONE}"
-                    android:scaleX="@{largeCenter ? 1.1f : 1f}"
-                    android:scaleY="@{largeCenter ? 1.1f : 1f}"
+                    android:scaleX="@{(largeCenter ? 1.1f : 1f) * (gaugeScale == 0f ? 1f : gaugeScale)}"
+                    android:scaleY="@{(largeCenter ? 1.1f : 1f) * (gaugeScale == 0f ? 1f : gaugeScale)}"
                     app:alpha="@{gaugeAlpha}" />
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/gaugeRight"
+        android:scaleX="@{gaugeScale == 0f ? 1f : gaugeScale}"
+        android:scaleY="@{gaugeScale == 0f ? 1f : gaugeScale}"
                     android:name="com.aatorque.stats.TorqueGauge"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -264,6 +284,25 @@
                     app:layout_constraintRight_toRightOf="parent"
                     app:alpha="@{gaugeAlpha}"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/musicInfo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:elevation="2dp"
+                    android:ellipsize="marquee"
+                    android:focusable="false"
+                    android:gravity="center"
+                    android:marqueeRepeatLimit="marquee_forever"
+                    android:singleLine="true"
+                    android:text="@{musicText}"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:visibility="@{(showChart || !showMusic || musicText == null || musicText.isEmpty()) ? View.GONE : View.VISIBLE}"
+                    app:layout_constraintLeft_toLeftOf="@id/gaugeCenter"
+                    app:layout_constraintRight_toRightOf="@id/gaugeCenter"
+                    app:layout_constraintTop_toBottomOf="@id/gaugeCenter" />
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/display1"

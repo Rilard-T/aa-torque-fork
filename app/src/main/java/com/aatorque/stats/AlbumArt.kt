@@ -33,7 +33,11 @@ abstract class AlbumArt : CarFragment() {
         lifecycleScope.launch {
             updateChannel.asSharedFlow()
                 .distinctUntilChangedBy {
-                    metaDataToArt(it).hashCode()
+                    listOf(
+                        metaDataToArt(it)?.hashCode(),
+                        it?.getString(MediaMetadata.METADATA_KEY_TITLE),
+                        it?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                    ).hashCode()
                 }
                 .collect {
                     Timber.i("Sending new metadata ${it}")
