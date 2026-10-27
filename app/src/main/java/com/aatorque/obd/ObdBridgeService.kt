@@ -164,31 +164,73 @@ class ObdBridgeService : Service() {
 
     // ---------------- подключение ----------------
 
+    /** Канал связи и подсказка на случай, если его не удалось открыть. */
+    private class Target(val link: ObdLink, val label: String, val hint: String)
+
+    /** Создаёт канал по выбранному типу подключения; если не получилось, причина остаётся в статусе. */
     @SuppressLint("MissingPermission")
-    private fun connectLoop() {
-        while (running) {
-            var link: Elm327Link? = null      // закрываем при любом сбое, иначе адаптер остаётся занятым нами же
-            try {
-                reconnectFlag = false
+    private fun createTarget(): Target? {
+        when (prefs.getString("link_type", "classic")) {
+            "wifi" -> {
+                val host = prefs.getString("wifi_host", null)?.trim().orEmpty().ifBlank { "192.168.0.10" }
+                val port = prefs.getString("wifi_port", null)?.trim()?.toIntOrNull() ?: 35000
+                return Target(
+                    WifiLink(applicationContext, host, port), "Wi-Fi $host:$port",
+                    "Не удалось подключиться по Wi-Fi. Подключите телефон к сети адаптера (WiFi_OBDII, V-LINK…), " +
+                        "проверьте адрес и порт, включите зажигание."
+                )
+            }
+            "ble" -> {
+                if (Build.VERSION.SDK_INT >= 31 &&
+                    checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                    post("Нет разрешения BLUETOOTH_CONNECT")
+                    return null
+                }
+                val mac = prefs.getString("ble_mac", null)?.takeIf { it.isNotBlank() }
+                if (mac == null) {
+                    post("Выберите BLE-адаптер: «Найти BLE-адаптеры»")
+                    return null
+                }
+                val dev = BluetoothAdapter.getDefaultAdapter()?.getRemoteDevice(mac) ?: return null
+                return Target(
+                    BleLink(applicationContext, dev), "BLE ${dev.name ?: mac}",
+                    "Не удалось подключиться по BLE. Включите зажигание, подойдите ближе к адаптеру, " +
+                        "закройте другие программы с OBD."
+                )
+            }
+            else -> {
                 val dev = findDevice()
                 if (dev == null) {
-                    post(status.takeIf { it.startsWith("Нет разрешения") }
-                        ?: "Адаптер не найден: сопрягите его в Bluetooth")
+                    post(status.takeIf { it.startsWith("Нет разрешения") } ?: "Адаптер не найден: сопрягите его в Bluetooth")
+                    return null
+                }
+                return Target(
+                    Elm327Link(dev), dev.name ?: dev.address,
+                    "Не удалось открыть канал Bluetooth. Включите зажигание, закройте другие программы " +
+                        "с OBD (CarScanner, Torque, старую версию приложения)."
+                )
+            }
+        }
+    }
+
+    private fun connectLoop() {
+        while (running) {
+            var link: ObdLink? = null      // закрываем при любом сбое, иначе адаптер остаётся занятым нами же
+            try {
+                reconnectFlag = false
+                val t = createTarget()
+                if (t == null) {
                     Thread.sleep(5000); continue
                 }
-                post("Подключение к ${dev.name ?: dev.address}…")
-                val l = Elm327Link(dev)
-                link = l
+                post("Подключение: ${t.label}…")
+                link = t.link
                 try {
-                    l.open()
+                    t.link.open()
                 } catch (ex: java.io.IOException) {
-                    throw java.io.IOException(
-                        "Не удалось открыть канал Bluetooth. Включите зажигание, закройте другие программы " +
-                            "с OBD (CarScanner, Torque, старую версию приложения). ${ex.message}"
-                    )
+                    throw java.io.IOException(t.hint + " " + ex.message)
                 }
                 post("Инициализация адаптера…")
-                val e = ObdEngine(l, prefs)
+                val e = ObdEngine(t.link, prefs)
                 e.init()
                 engine = e
                 post("Подключено")

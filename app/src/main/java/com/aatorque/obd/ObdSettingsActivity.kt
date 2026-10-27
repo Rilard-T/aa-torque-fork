@@ -61,6 +61,22 @@ class ObdSettingsActivity : AppCompatActivity() {
             ObdBridgeService.start(this)
             (supportFragmentManager.findFragmentById(android.R.id.content) as? ObdPrefsFragment)?.refreshAdapters()
         }
+        if (requestCode == 78 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+            (supportFragmentManager.findFragmentById(android.R.id.content) as? ObdPrefsFragment)?.startBleScan()
+        }
+    }
+
+    /** Для поиска BLE: BLUETOOTH_SCAN (Android 12+) или геолокация (Android 11 и ниже). */
+    fun hasScanPermission(): Boolean =
+        if (Build.VERSION.SDK_INT >= 31)
+            checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+        else
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+    fun requestScanPermission() {
+        val p = if (Build.VERSION.SDK_INT >= 31) Manifest.permission.BLUETOOTH_SCAN
+        else Manifest.permission.ACCESS_FINE_LOCATION
+        requestPermissions(arrayOf(p), 78)
     }
 }
 
@@ -70,6 +86,12 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
     private var statusPref: Preference? = null
     private var valuesPref: Preference? = null
     private var adapterPref: ListPreference? = null
+    private val classicPrefs = mutableListOf<Preference>()
+    private val blePrefs = mutableListOf<Preference>()
+    private val wifiPrefs = mutableListOf<Preference>()
+    private var bleScanPref: Preference? = null
+    private var blePref: ListPreference? = null
+    private val scanner = BleScanner()
     @Volatile private var busy = false
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -117,9 +139,29 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
         action(con, "Остановить", "Закрывает соединение и убирает уведомление") {
             ObdBridgeService.stop(ctx)
         }
-        action(con, "Настройки Bluetooth", "Сопряжение адаптера (имя обычно OBDII, PIN 1234 или 0000)") {
-            startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+
+        val type = ListPreference(ctx)
+        type.key = "link_type"
+        type.title = "Тип подключения"
+        type.dialogTitle = "Как подключён адаптер"
+        type.entries = arrayOf("Bluetooth Classic (обычный)", "Bluetooth LE (BLE)", "Wi-Fi")
+        type.entryValues = arrayOf("classic", "ble", "wifi")
+        type.setDefaultValue("classic")
+        type.summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+        type.setOnPreferenceChangeListener { _, v ->
+            updateLinkPrefs(v.toString())
+            ObdBridgeService.reconnect(ctx)
+            true
         }
+        con.addPreference(type)
+
+        // Bluetooth Classic
+        val btSettings = Preference(ctx)
+        btSettings.title = "Настройки Bluetooth"
+        btSettings.summary = "Сопряжение адаптера (имя обычно OBDII, PIN 1234 или 0000)"
+        btSettings.setOnPreferenceClickListener { startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)); true }
+        con.addPreference(btSettings)
+        classicPrefs += btSettings
         val ad = ListPreference(ctx)
         ad.key = "obd_mac"
         ad.title = "Адаптер"
@@ -128,7 +170,56 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
         ad.setOnPreferenceChangeListener { _, _ -> ObdBridgeService.reconnect(ctx); true }
         con.addPreference(ad)
         adapterPref = ad
+        classicPrefs += ad
         refreshAdapters()
+
+        // Bluetooth LE
+        val bleScan = Preference(ctx)
+        bleScan.title = "Найти BLE-адаптеры"
+        bleScan.summary = "Поиск рядом занимает около 10 секунд. Адаптер должен быть включён."
+        bleScan.setOnPreferenceClickListener { startBleScan(); true }
+        con.addPreference(bleScan)
+        blePrefs += bleScan
+        bleScanPref = bleScan
+        val bleMac = ListPreference(ctx)
+        bleMac.key = "ble_mac"
+        bleMac.title = "BLE-адаптер"
+        bleMac.dialogTitle = "BLE-адаптер (из найденных)"
+        bleMac.summaryProvider = Preference.SummaryProvider<ListPreference> { p -> p.entry?.toString() ?: "Не выбран" }
+        bleMac.setOnPreferenceChangeListener { _, _ -> ObdBridgeService.reconnect(ctx); true }
+        con.addPreference(bleMac)
+        blePrefs += bleMac
+        blePref = bleMac
+        fillBle(emptyList())
+
+        // Wi-Fi
+        val wifiSettings = Preference(ctx)
+        wifiSettings.title = "Настройки Wi-Fi"
+        wifiSettings.summary = "Подключитесь к сети адаптера (имя вроде WiFi_OBDII или V-LINK, интернета в ней нет)"
+        wifiSettings.setOnPreferenceClickListener { startActivity(Intent(Settings.ACTION_WIFI_SETTINGS)); true }
+        con.addPreference(wifiSettings)
+        wifiPrefs += wifiSettings
+        val wifiHost = EditTextPreference(ctx)
+        wifiHost.key = "wifi_host"
+        wifiHost.title = "Адрес адаптера"
+        wifiHost.dialogTitle = "IP-адрес адаптера"
+        wifiHost.setDefaultValue("192.168.0.10")
+        wifiHost.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
+        wifiHost.setOnPreferenceChangeListener { _, _ -> ObdBridgeService.reconnect(ctx); true }
+        con.addPreference(wifiHost)
+        wifiPrefs += wifiHost
+        val wifiPort = EditTextPreference(ctx)
+        wifiPort.key = "wifi_port"
+        wifiPort.title = "Порт адаптера"
+        wifiPort.dialogTitle = "Порт адаптера"
+        wifiPort.setDefaultValue("35000")
+        wifiPort.setOnBindEditTextListener { it.inputType = InputType.TYPE_CLASS_NUMBER }
+        wifiPort.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
+        wifiPort.setOnPreferenceChangeListener { _, _ -> ObdBridgeService.reconnect(ctx); true }
+        con.addPreference(wifiPort)
+        wifiPrefs += wifiPort
+
+        updateLinkPrefs(prefs.getString("link_type", "classic") ?: "classic")
 
         // --- опрос датчиков ---
         val poll = category("Опрос датчиков")
@@ -188,6 +279,54 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
         wrapTitles(screen)
     }
 
+    /** Показывает настройки только выбранного типа подключения. */
+    private fun updateLinkPrefs(type: String) {
+        classicPrefs.forEach { it.isVisible = type == "classic" }
+        blePrefs.forEach { it.isVisible = type == "ble" }
+        wifiPrefs.forEach { it.isVisible = type == "wifi" }
+    }
+
+    fun startBleScan() {
+        val act = activity as? ObdSettingsActivity ?: return
+        if (!act.hasScanPermission()) {
+            act.requestScanPermission()
+            return
+        }
+        bleScanPref?.summary = "Поиск… (около 10 секунд)"
+        scanner.start(
+            10_000,
+            onUpdate = { list ->
+                fillBle(list)
+                bleScanPref?.summary = "Найдено: ${list.size}"
+            },
+            onDone = { list ->
+                fillBle(list)
+                bleScanPref?.summary =
+                    if (list.isEmpty()) "Ничего не найдено. Включите зажигание, поднесите телефон ближе и повторите."
+                    else "Найдено: ${list.size}. Выберите адаптер в списке ниже."
+            }
+        )
+    }
+
+    private fun fillBle(list: List<BleScanner.Found>) {
+        val pref = blePref ?: return
+        val ctx = context ?: return
+        val saved = ctx.getSharedPreferences("obd_bridge", Context.MODE_PRIVATE)
+            .getString("ble_mac", null)?.takeIf { it.isNotBlank() }
+        val names = mutableListOf("Не выбран")
+        val vals = mutableListOf("")
+        list.forEach {
+            names += "${it.name}  (${it.address}), ${it.rssi} дБм"
+            vals += it.address
+        }
+        if (saved != null && vals.none { it.equals(saved, ignoreCase = true) }) {
+            names += "Сохранённый ($saved)"
+            vals += saved
+        }
+        pref.entries = names.toTypedArray()
+        pref.entryValues = vals.toTypedArray()
+    }
+
     @SuppressLint("MissingPermission")
     fun refreshAdapters() {
         val ad = adapterPref ?: return
@@ -217,6 +356,7 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
 
     override fun onPause() {
         ui.removeCallbacks(tick)
+        scanner.stop()
         super.onPause()
     }
 

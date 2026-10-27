@@ -11,13 +11,13 @@ import java.net.SocketTimeoutException
 import java.util.UUID
 
 /** Bluetooth Classic (SPP) канал к ELM327. Команды строго по очереди. */
-class Elm327Link(private val device: BluetoothDevice) {
+class Elm327Link(private val device: BluetoothDevice) : ObdLink {
     private var socket: BluetoothSocket? = null
     private var input: InputStream? = null
     private var output: OutputStream? = null
 
     @SuppressLint("MissingPermission")
-    fun open() {
+    override fun open() {
         close()
         runCatching { BluetoothAdapter.getDefaultAdapter()?.cancelDiscovery() }   // нужен BLUETOOTH_SCAN; поиск мы не запускаем, отказ не страшен
         // Клонам ELM327 подходят разные способы: обычный SPP, незащищённый SPP, канал 1 напрямую
@@ -48,14 +48,14 @@ class Elm327Link(private val device: BluetoothDevice) {
         throw IOException("Канал Bluetooth не открылся: ${last?.message}")
     }
 
-    fun close() {
+    override fun close() {
         runCatching { socket?.close() }
         socket = null; input = null; output = null
     }
 
     /** Отправляет команду и читает ответ до приглашения '>' . Возвращает строки ответа без эха. */
     @Synchronized
-    fun command(cmd: String, timeoutMs: Long): String {
+    override fun command(cmd: String, timeoutMs: Long): String {
         val out = output ?: throw IOException("Нет соединения")
         val inp = input ?: throw IOException("Нет соединения")
         while (inp.available() > 0) inp.read()          // выбрасываем хвост прошлого ответа

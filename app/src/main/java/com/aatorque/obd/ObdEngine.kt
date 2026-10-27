@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import java.io.IOException
 
 /** Опрос блоков через ELM327: инициализация, смена заголовков, кэш, разбор ответов. */
-class ObdEngine(private val link: Elm327Link, private val prefs: SharedPreferences) {
+class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences) {
     val tracker = RegenTracker.get(prefs)
 
     private class Sample(val t: Long, val v: Double?)
