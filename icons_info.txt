@@ -1,0 +1,2 @@
+37:        android:icon="@mipmap/ic_launcher"
+50:            android:icon="@mipmap/ic_launcher"
