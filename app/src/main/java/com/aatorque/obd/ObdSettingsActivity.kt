@@ -255,11 +255,12 @@ class ObdPrefsFragment : PreferenceFragmentCompat() {
         dpf.key = "dpf_full_gl_ui"
         dpf.isPersistent = false                 // число храним сами как float (его читает ObdEngine)
         dpf.title = "Порог сажи для «DPF %», г/л"
-        dpf.dialogTitle = "Порог сажи (г/л), пусто — выключено"
+        dpf.dialogTitle = "Порог сажи (г/л), пусто — ${ObdConfig.DPF_FULL_GL} по умолчанию"
         dpf.text = prefs.getFloat("dpf_full_gl", 0f).takeIf { it > 0 }?.toString() ?: ""
         dpf.setOnBindEditTextListener { it.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL }
         dpf.summaryProvider = Preference.SummaryProvider<EditTextPreference> { p ->
-            if (p.text.isNullOrBlank()) "Выключено" else "${p.text} г/л"
+            val v = if (p.text.isNullOrBlank()) "${ObdConfig.DPF_FULL_GL} г/л (по умолчанию)" else "${p.text} г/л"
+            "$v. Среднее значение, фактическое может отличаться. Если счётчик врёт, используйте «Экспериментальные функции»."
         }
         dpf.setOnPreferenceChangeListener { _, v ->
             val f = v.toString().replace(',', '.').toFloatOrNull() ?: 0f

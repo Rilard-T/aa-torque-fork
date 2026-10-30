@@ -7,6 +7,7 @@
     <import type="androidx.constraintlayout.widget.ConstraintLayout.LayoutParams" />
     <import type="com.aatorque.stats.ViewAdapterKt" />
     <import type="android.view.Gravity" />
+    <import type="android.widget.LinearLayout" />
     <variable name="value" type="String"/>
     <variable name="iconText" type="String"/>
     <variable name="icon" type="Integer"/>
@@ -35,67 +36,79 @@
             android:layout_height="3dp"
             app:color="@{alarm}" />
 
-        <TextView
-            android:id="@+id/valueElement"
-            android:scaleX="@{valueScale == 0f ? 1f : valueScale}"
-            android:scaleY="@{valueScale == 0f ? 1f : valueScale}"
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="0dp"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="none"
-            android:gravity="center"
-            android:maxLines="1"
-            android:text="@{value}"
-            android:textAlignment="gravity"
-            android:textColor="@android:color/white"
-            android:textSize="25sp"
-            android:typeface="@{font}" />
-
-        <FrameLayout
+        <!-- Значок + значение: в одну строку при значке, столбцом при текстовой подписи -->
+        <LinearLayout
+            android:id="@+id/valueRow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:clipChildren="false">
+            android:clipChildren="false"
+            android:gravity="center"
+            android:orientation="@{(iconText == null || iconText.isEmpty()) ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL}"
+            app:reversed="@{!(iconText == null || iconText.isEmpty()) &amp;&amp; !(showBottom || showSide)}">
 
-            <!-- Icon mode: fixed 40x40 as before -->
-            <TextView
-                android:id="@+id/iconElement"
-                android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
-                android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal"
-                android:alpha="1.0"
-                android:typeface="@{font}"
-                android:backgroundTint="@color/car_primary"
-                android:gravity="center"
-                android:textAlignment="gravity"
-                android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.VISIBLE : View.GONE}"
-                app:backgroundResource="@{icon ?? 0}" />
-
-            <!-- Text label mode: full text, up to 2 lines, never ellipsized -->
-            <TextView
-                android:id="@+id/labelElement"
-                android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
-                android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
+            <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:minHeight="40dp"
-                android:maxWidth="190dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:clipChildren="false">
+
+                <!-- Icon mode: fixed 40x40 as before -->
+                <TextView
+                    android:id="@+id/iconElement"
+                    android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
+                    android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:alpha="1.0"
+                    android:typeface="@{font}"
+                    android:backgroundTint="@color/car_primary"
+                    android:gravity="center"
+                    android:textAlignment="gravity"
+                    android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.VISIBLE : View.GONE}"
+                    app:backgroundResource="@{icon ?? 0}" />
+
+                <!-- Text label mode: full text, up to 2 lines, never ellipsized -->
+                <TextView
+                    android:id="@+id/labelElement"
+                    android:scaleX="@{labelScale == 0f ? 1f : labelScale}"
+                    android:scaleY="@{labelScale == 0f ? 1f : labelScale}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:minHeight="40dp"
+                    android:maxWidth="190dp"
+                    android:ellipsize="none"
+                    android:maxLines="2"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:typeface="@{font}"
+                    android:text="@{iconText}"
+                    android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.GONE : View.VISIBLE}" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/valueElement"
+                android:scaleX="@{valueScale == 0f ? 1f : valueScale}"
+                android:scaleY="@{valueScale == 0f ? 1f : valueScale}"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="8dp"
                 android:ellipsize="none"
-                android:maxLines="2"
-                android:gravity="center"
-                android:textAlignment="center"
+                android:gravity="@{(iconText == null || iconText.isEmpty()) ? (Gravity.START | Gravity.CENTER_VERTICAL) : Gravity.CENTER}"
+                android:maxLines="1"
+                android:text="@{value}"
+                android:textAlignment="gravity"
                 android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:typeface="@{font}"
-                android:text="@{iconText}"
-                android:visibility="@{(iconText == null || iconText.isEmpty()) ? View.GONE : View.VISIBLE}" />
-        </FrameLayout>
+                android:textSize="25sp"
+                android:typeface="@{font}" />
+
+        </LinearLayout>
 
     </LinearLayout>
 </layout>

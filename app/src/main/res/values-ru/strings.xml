@@ -113,7 +113,7 @@
 
     <!-- Fuzzy -->
     <string name="download_complete">Загрузка завершена</string>
-    <string name="force_update">Запустить апдейт</string>
+    <string name="force_update">Проверить обновления</string>
     <string name="update_failed">Ошибка апдейта</string>
     <string name="donate">Пожертвовать</string>
     <string name="translate">Перевести</string>
@@ -121,7 +121,7 @@
     <string name="credits_original">Оригинальный AA Torque:</string>
     <string name="credits_original_btn">Оригинал</string>
     <string name="credits_fork_notice">Изменённая версия AA Torque под лицензией GPL-3.0. Изменения: прямое подключение к ELM327, данные Mazda SkyActiv-D, новое название. © 2026 Rilard-T.</string>
-    <string name="action_obd">Подключение к OBD</string>
+    <string name="action_obd">Настройки</string>
     <string name="action_exit">Выход</string>
     <string name="exit_title">Выйти из приложения?</string>
     <string name="exit_message">Соединение с адаптером OBD будет закрыто, дашборд на экране автомобиля остановится.</string>

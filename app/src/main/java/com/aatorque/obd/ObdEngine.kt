@@ -2,6 +2,7 @@ package com.aatorque.obd
 
 import android.content.SharedPreferences
 import java.io.IOException
+import timber.log.Timber
 
 /** Опрос блоков через ELM327: инициализация, смена заголовков, кэш, разбор ответов. */
 class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences) {
@@ -9,6 +10,11 @@ class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences)
 
     private class Sample(val t: Long, val v: Double?)
     private val cache = HashMap<String, Sample>()
+    /** Последнее удачное значение медленных датчиков: при единичном промахе показываем его, а не 0. */
+    private val lastGood = HashMap<String, Sample>()
+    private val lastWarn = HashMap<String, Long>()
+    @Volatile private var lastRaw = ""
+    private val HOLD_SLOW_MS = 30_000L
     private val supported = HashSet<Int>()      // PID режима 01, о которых заявил блок двигателя
     private var curHdr = ""
     /** Просьба адаптеру вернуть ответ сразу после первого сообщения (последняя hex-цифра «1» в запросе). */
@@ -86,8 +92,21 @@ class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences)
         val now = System.currentTimeMillis()
         val ttl = if (p.slow) slowMs() else fastMs()
         if (!force) cache[p.id]?.let { if (now - it.t < ttl) return it.v }
-        val v = try { fetch(p) } catch (e: IOException) { failures++; null }
-        cache[p.id] = Sample(System.currentTimeMillis(), v)
+        var failed = false
+        var v = try { fetch(p) } catch (e: IOException) { failures++; failed = true; lastRaw = e.message ?: "ошибка связи"; null }
+        if (v == null && !failed && p.virtual == null && p.header != "7E0") {   // блок АКПП иногда молчит: один быстрый повтор
+            v = try { fetch(p) } catch (e: IOException) { failures++; failed = true; lastRaw = e.message ?: "ошибка связи"; null }
+        }
+        val t = System.currentTimeMillis()
+        var shown: Double? = v
+        if (v != null) {
+            if (p.slow) lastGood[p.id] = Sample(t, v)
+        } else if (p.slow && p.virtual == null) {
+            warnMiss(p, t)
+            val g = lastGood[p.id]
+            if (g != null && t - g.t < HOLD_SLOW_MS) shown = g.v
+        }
+        cache[p.id] = Sample(t, shown)
         if (v != null) when (p.id) {
             "ff9001" -> tracker.onCount(v.toInt())
             "ff9002" -> tracker.onDist(v)
@@ -95,7 +114,14 @@ class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences)
             "7c" -> tracker.onTemp(v)
             "ff9006" -> tracker.onStatus(v.toInt())
         }
-        return v
+        return shown
+    }
+
+    /** Пишет в журнал причину промаха (ответ адаптера), не чаще раза в 10 с на датчик. */
+    private fun warnMiss(p: PidDef, now: Long) {
+        if (now - (lastWarn[p.id] ?: 0L) < 10_000L) return
+        lastWarn[p.id] = now
+        Timber.w("Нет данных %s (блок %s): %s", p.id, p.header, lastRaw.replace(Regex("\\s+"), " ").take(60))
     }
 
     private fun fetch(p: PidDef): Double? {
@@ -107,6 +133,7 @@ class ObdEngine(private val link: ObdLink, private val prefs: SharedPreferences)
             useCount = false
             text = send(p.header, req, 1500)
         }
+        lastRaw = text
         failures = 0
         val b = parse(text, prefix) ?: return null
         return p.decode?.invoke(b)

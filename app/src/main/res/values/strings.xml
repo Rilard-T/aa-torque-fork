@@ -162,7 +162,7 @@
     <string name="pref_data_element_settings">Data element settings %1$d</string>
     <string name="pref_title_performance">Title %1$d</string>
     <string name="download_dialog">Try to install this app as the Play Store? If this fails you can try using Kingstaller.</string>
-    <string name="force_update">Force update</string>
+    <string name="force_update">Check for updates</string>
     <string name="update_failed">Update check failed</string>
     <string name="convert_minutes_seconds">Seconds to Minutes:Seconds</string>
     <string name="donate">Please donate!</string>
@@ -199,7 +199,7 @@
     <string name="credits_original">Original AA Torque by:</string>
     <string name="credits_original_btn">Original</string>
     <string name="credits_fork_notice">Modified version of AA Torque, licensed under GPL-3.0. Changes: direct ELM327 connection, Mazda SkyActiv-D data, renamed app. © 2026 Rilard-T.</string>
-    <string name="action_obd">OBD connection</string>
+    <string name="action_obd">Settings</string>
     <string name="action_exit">Exit</string>
     <string name="exit_title">Exit the app?</string>
     <string name="exit_message">The connection to the OBD adapter will be closed and the dashboard on the car display will stop.</string>
