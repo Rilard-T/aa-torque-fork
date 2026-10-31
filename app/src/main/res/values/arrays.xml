@@ -2,6 +2,7 @@
 <resources>
     <!-- List of themes, used in settings -->
     <string-array name="Themes">
+        <item>Mazda gen4</item>
         <item>VW</item>
         <item>VW GTI</item>
         <item>VW R/GTE</item>
@@ -27,10 +28,10 @@
         <item>Electro Vehicle</item>
         <item>Test</item>
         <item>Bolt</item>
-        <item>Mazda gen4</item>
     </string-array>
 
     <array name="ThemesThumbs">
+        <item>@drawable/ic_theme_mazda4</item>
         <item>@drawable/ic_theme_vw</item>
         <item>@drawable/ic_theme_vwgti</item>
         <item>@drawable/ic_theme_vwgte</item>
@@ -56,10 +57,10 @@
         <item>@drawable/ic_theme_ev</item>
         <item>@drawable/ic_theme_test</item>
         <item>@drawable/ic_theme_bolt</item>
-        <item>@drawable/ic_theme_mazda4</item>
     </array>
 
     <array name="ThemeList">
+        <item>@style/AppTheme.Mazda4</item>
         <item>@style/AppTheme.Volkswagen</item>
         <item>@style/AppTheme.VolkswagenGTI</item>
         <item>@style/AppTheme.VolkswagenGTE</item>
@@ -85,7 +86,6 @@
         <item>@style/AppTheme.EV</item>
         <item>@style/AppTheme.Testing</item>
         <item>@style/AppTheme.Bolt</item>
-        <item>@style/AppTheme.Mazda4</item>
     </array>
 
     <string-array name="fontEntries">

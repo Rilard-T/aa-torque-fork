@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="Themes">
+        <item>Mazda gen4</item>
         <item>VW</item>
         <item>VW GTI</item>
         <item>VW R/GTE</item>
@@ -26,6 +27,5 @@
         <item>Электромобиль</item>
         <item>Тест</item>
         <item>Bolt</item>
-        <item>Mazda gen4</item>
     </string-array>
 </resources>
